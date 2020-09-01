@@ -61,6 +61,8 @@
             // includeFileNameCheckBox
             // 
             this.includeFileNameCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
+            this.includeFileNameCheckBox.Checked = true;
+            this.includeFileNameCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.includeFileNameCheckBox.Location = new System.Drawing.Point(14, 58);
             this.includeFileNameCheckBox.Name = "includeFileNameCheckBox";
             this.includeFileNameCheckBox.Size = new System.Drawing.Size(356, 25);
@@ -71,6 +73,8 @@
             // resizeOnUploadCheckbox
             // 
             this.resizeOnUploadCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
+            this.resizeOnUploadCheckbox.Checked = true;
+            this.resizeOnUploadCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.resizeOnUploadCheckbox.Location = new System.Drawing.Point(14, 89);
             this.resizeOnUploadCheckbox.Name = "resizeOnUploadCheckbox";
             this.resizeOnUploadCheckbox.Size = new System.Drawing.Size(356, 25);

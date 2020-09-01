@@ -8,10 +8,10 @@ namespace WindowsExtensionSearchImageByGoogle.Helpers.DesktopHelpers
     public class DesktopContextMenu
     {
         private const string ShellKeyPathFormat = @"Software\Classes\SystemFileAssociations\{0}\shell";
-        private const string VerbName = "GoogleImageShell";
+        private const string VerbName = "ImageSearchInWeb";
         private const string CommandKey = "command";
 
-        private static readonly Dictionary<ImageFileType, string[]> FileTypeMap =
+        private readonly Dictionary<ImageFileType, string[]> _fileTypeMap =
             new Dictionary<ImageFileType, string[]>
             {
                 {ImageFileType.JPG, new[] {".jpg", ".jpe", ".jpeg", ".jfif"}},
@@ -26,12 +26,16 @@ namespace WindowsExtensionSearchImageByGoogle.Helpers.DesktopHelpers
         /// <param name="includeFileName">Whether to include the image file name when uploading</param>
         /// <param name="resizeOnUpload">Whether to resize large images when uploading</param>
         /// <returns>The shell command string</returns>
-        private static string CreateProgramCommand(bool includeFileName, bool resizeOnUpload)
+        private string CreateProgramCommand(bool includeFileName, bool resizeOnUpload)
         {
             var exePath = new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath;
             var command = exePath + " search \"%1\"";
-            if (includeFileName) command += " -n";
-            if (resizeOnUpload) command += " -r";
+            
+            if (includeFileName) 
+                command += " -n";
+            if (resizeOnUpload) 
+                command += " -r";
+            
             return command;
         }
 
@@ -42,7 +46,7 @@ namespace WindowsExtensionSearchImageByGoogle.Helpers.DesktopHelpers
         /// <param name="allUsers">true if installing for all users, false if for current user</param>
         /// <param name="fileType">File extension (".jpg", ".png", etc)</param>
         /// <returns>Registry key object for the specified user/file type</returns>
-        private static RegistryKey GetShellKey(bool allUsers, string fileType)
+        private RegistryKey GetShellKey(bool allUsers, string fileType)
         {
             var hiveKey = allUsers ? Registry.LocalMachine : Registry.CurrentUser;
             var shellPath = string.Format(ShellKeyPathFormat, fileType);
@@ -58,12 +62,12 @@ namespace WindowsExtensionSearchImageByGoogle.Helpers.DesktopHelpers
         /// <param name="allUsers">Whether to install for all users</param>
         /// <param name="resizeOnUpload">Whether to resize large images when uploading</param>
         /// <param name="types">Image file types to install the handler for</param>
-        public static void InstallHandler(string menuText, bool includeFileName, bool allUsers, bool resizeOnUpload,
-            ImageFileType[] types)
+        public void InstallHandler(string menuText, bool includeFileName, bool allUsers, bool resizeOnUpload,
+            IEnumerable<ImageFileType> types)
         {
             var command = CreateProgramCommand(includeFileName, resizeOnUpload);
             foreach (var fileType in types)
-            foreach (var typeExt in FileTypeMap[fileType])
+            foreach (var typeExt in _fileTypeMap[fileType])
             {
                 using var shellKey = GetShellKey(allUsers, typeExt);
                 using var verbKey = shellKey.CreateSubKey(VerbName);
@@ -82,10 +86,10 @@ namespace WindowsExtensionSearchImageByGoogle.Helpers.DesktopHelpers
         /// </summary>
         /// <param name="allUsers">Whether to uninstall for all users</param>
         /// <param name="types">Image file types to uninstall the handler for</param>
-        public static void UninstallHandler(bool allUsers, ImageFileType[] types)
+        public void UninstallHandler(bool allUsers, ImageFileType[] types)
         {
             foreach (var fileType in types)
-            foreach (var typeExt in FileTypeMap[fileType])
+            foreach (var typeExt in _fileTypeMap[fileType])
             {
                 using var shellKey = GetShellKey(allUsers, typeExt);
                 shellKey?.DeleteSubKeyTree(VerbName, false);

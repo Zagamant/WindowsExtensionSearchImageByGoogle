@@ -23,9 +23,11 @@ namespace WindowsExtensionSearchImageByGoogle
                 switch (arg)
                 {
                     case "-n":
+                    case "--name":
                         _includeFileName = true;
                         break;
                     case "-r":
+                    case "--resize":
                         _resizeOnUpload = true;
                         break;
                     default:
@@ -41,9 +43,9 @@ namespace WindowsExtensionSearchImageByGoogle
             Log("Include file name: " + _includeFileName);
             Log("Resize on upload: " + _resizeOnUpload);
             
-            var googleSearchImages = new SearchImageByGoogle();
+            var googleSearchImages = new SearchImage();
 
-            var task = googleSearchImages.Search(_imagePath, _includeFileName, _resizeOnUpload, _cancelTokenSource.Token);
+            var task = googleSearchImages.Search(_imagePath, _includeFileName, _resizeOnUpload, new GoogleSearchEngine(), _cancelTokenSource.Token);
             task.ContinueWith(OnUploadComplete, TaskScheduler.FromCurrentSynchronizationContext());
         }
 

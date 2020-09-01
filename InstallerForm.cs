@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
@@ -41,11 +42,12 @@ namespace WindowsExtensionSearchImageByGoogle
         }
         
         private static void Install(string menuText, bool includeFileName, bool allUsers, bool resizeOnUpload,
-            ImageFileType[] types)
+            IEnumerable<ImageFileType> types)
         {
             try
             {
-                DesktopContextMenu.InstallHandler(menuText, includeFileName, allUsers, resizeOnUpload, types);
+                var desktopContextMenu = new DesktopContextMenu();
+                desktopContextMenu.InstallHandler(menuText, includeFileName, allUsers, resizeOnUpload, types);
             }
             catch (Exception ex)
             {
@@ -66,7 +68,8 @@ namespace WindowsExtensionSearchImageByGoogle
         {
             try
             {
-                DesktopContextMenu.UninstallHandler(allUsers, types);
+                var desktopContextMenu = new DesktopContextMenu();
+                desktopContextMenu.UninstallHandler(allUsers, types);
             }
             catch (Exception ex)
             {

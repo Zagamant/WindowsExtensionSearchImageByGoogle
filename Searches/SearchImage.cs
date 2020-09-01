@@ -2,15 +2,26 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowsExtensionSearchImageByGoogle.Helpers;
 
 namespace WindowsExtensionSearchImageByGoogle.Searches
 {
-    public abstract class SearchImage
+    public class SearchImage
     {
-        protected const int MinImageDimension = 200;
-        protected const int MaxImageDimension = 800;
+        protected readonly int MinImageDimension;
+        protected readonly int MaxImageDimension;
+
+        public SearchImage() : this(800,200) { }
+        
+        public SearchImage(int minImageDimension, int maxImageDimension)
+        {
+            MinImageDimension = minImageDimension;
+            MaxImageDimension = maxImageDimension;
+        }
 
         /// <summary>
         /// Determines whether the input image should be resized,
@@ -19,7 +30,7 @@ namespace WindowsExtensionSearchImageByGoogle.Searches
         /// <param name="originalSize">Original size of the image</param>
         /// <param name="newSize">Dimensions after resizing</param>
         /// <returns>true if the image should be resized; false otherwise</returns>
-        protected static bool IsShouldResize(Size originalSize, out Size newSize)
+        protected bool IsShouldResize(Size originalSize, out Size newSize)
         {
             // Compute resize ratio (at LEAST ratioMin, at MOST ratioMax).
             // ratioMin is used to prevent the image from getting too small.
@@ -27,8 +38,8 @@ namespace WindowsExtensionSearchImageByGoogle.Searches
             // whereas ratioMin is calculated on the SMALLER image dimension.
             var origW = originalSize.Width;
             var origH = originalSize.Height;
-            var ratioMax = Math.Min(SearchImage.MaxImageDimension / (double) origW, SearchImage.MaxImageDimension / (double) origH);
-            var ratioMin = Math.Max(SearchImage.MinImageDimension / (double) origW, SearchImage.MinImageDimension / (double) origH);
+            var ratioMax = Math.Min(MaxImageDimension / (double) origW, MaxImageDimension / (double) origH);
+            var ratioMin = Math.Max(MinImageDimension / (double) origW, MinImageDimension / (double) origH);
             var ratio = Math.Max(ratioMax, ratioMin);
 
             // If resizing it would make it bigger, then don't bother
@@ -100,7 +111,47 @@ namespace WindowsExtensionSearchImageByGoogle.Searches
             return base64;
         }
 
-        public abstract Task<string> Search(string imagePath, bool includeFileName, bool resizeOnUpload,
-            CancellationToken cancelToken);
+        /// <summary>
+        /// Asynchronously uploads the specified image to Google Images,
+        /// and returns the URL of the results page.
+        /// </summary>
+        /// <param name="imagePath">Path to the image file</param>
+        /// <param name="includeFileName">Whether to send the image file name to Google</param>
+        /// <param name="resizeOnUpload">Whether to resize large images</param>
+        /// <param name="searchEngine">Setting search engine</param>
+        /// <param name="cancelToken">Allows for cancellation of the upload</param>
+        /// <returns>String containing the URL of the results page</returns>
+        public async Task<string> Search(string imagePath, bool includeFileName, bool resizeOnUpload, ISearchEngine searchEngine,
+            CancellationToken cancelToken)
+        {
+            // Load the image, resizing it if necessary
+            var data = LoadImageData(imagePath, resizeOnUpload);
+
+            // Prevent auto redirect (we want to open the
+            // redirect destination directly in the browser)
+            var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false
+            };
+
+            using var client = new HttpClient(handler);
+            var form = new MultipartFormDataContentCompat
+            {
+                {
+                    new StringContent(BinaryToBase64Compat(data)), "image_content"
+                }
+            };
+            if (includeFileName) 
+                form.Add(new StringContent(Path.GetFileName(imagePath)), "filename");
+            
+            var response = await client.PostAsync(searchEngine.RequestUrl, form, cancelToken);
+            
+            if (response.StatusCode != HttpStatusCode.Redirect)
+                throw new IOException("Expected redirect to results page, got " + (int) response.StatusCode);
+            
+            var resultUrl = response.Headers.Location.ToString();
+            
+            return resultUrl;
+        }
     }
 }

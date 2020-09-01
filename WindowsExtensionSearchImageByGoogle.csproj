@@ -50,6 +50,8 @@
         <Compile Include="Helpers\DesktopHelpers\DesktopContextMenu.cs" />
         <Compile Include="Helpers\ImageFileType.cs" />
         <Compile Include="Helpers\MultipartFormDataContentCompat.cs" />
+        <Compile Include="Searches\GoogleSearchEngine.cs" />
+        <Compile Include="Searches\ISearchEngine.cs" />
         <Compile Include="Searches\SearchImage.cs" />
         <Compile Include="InstallerForm.cs">
             <SubType>Form</SubType>
@@ -59,7 +61,7 @@
         </Compile>
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="Searches\SearchImageByGoogle.cs" />
+        <Compile Include="Searches\YandexSearchEngine.cs" />
         <Compile Include="UploadForm.cs">
           <SubType>Form</SubType>
         </Compile>
